@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  firstName    String
+  lastName     String
+  createdAt    DateTime      @default(now()) @db.Timestamp()
+  updatedAt    DateTime      @updatedAt @db.Timestamp()
+  email        String        @unique
+  password     String
+  categories   Category[]
+  transactions Transaction[]
+  budgets      Budget[]
+}
+
+model Category {
+  id           String        @id @default(uuid())
+  name         String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  color        String
+  createdAt    DateTime      @default(now()) @db.Timestamp()
+  updatedAt    DateTime      @updatedAt @db.Timestamp()
+  transactions Transaction[]
+
+  @@unique([name, userId])
+}
+
+model Transaction {
+  id         String                @id @default(uuid())
+  createdAt  DateTime              @default(now()) @db.Timestamp()
+  updatedAt  DateTime              @updatedAt @db.Timestamp()
+  amount     Decimal               @db.Decimal(10, 2)
+  date       DateTime              @db.Timestamp()
+  note       String?
+  type       ETransactionType
+  direction  ETransactionDirection
+  category   Category?             @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId String?
+  user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  budget     Budget                @relation(fields: [budgetId], references: [id])
+  budgetId   String
+}
+
+model Budget {
+  id           String        @id @default(uuid())
+  createdAt    DateTime      @default(now()) @db.Timestamp()
+  updatedAt    DateTime      @default(now()) @db.Timestamp()
+  startDate    DateTime      @db.Timestamp()
+  endDate      DateTime      @db.Timestamp()
+  balance      Decimal       @default(0) @db.Decimal(10, 2)
+  transactions Transaction[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+}
+
+enum ETransactionDirection {
+  INCOME
+  EXPENSE
+}
+
+enum ETransactionType {
+  CASH
+  CARD
+}
