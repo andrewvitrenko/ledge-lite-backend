@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(uuid())
+  id           String        @id @default(uuid()) @db.Uuid
   firstName    String
   lastName     String
   createdAt    DateTime      @default(now()) @db.Timestamp()
@@ -23,14 +23,16 @@ model User {
   password     String
   categories   Category[]
   transactions Transaction[]
-  budgets      Budget[]
+  // budgets      Budget[]
+  accounts     Account[]
+  baseCurrency String        @default("USD")
 }
 
 model Category {
-  id           String        @id @default(uuid())
+  id           String        @id @default(uuid()) @db.Uuid
   name         String
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       String
+  userId       String        @db.Uuid
   color        String?
   createdAt    DateTime      @default(now()) @db.Timestamp()
   updatedAt    DateTime      @updatedAt @db.Timestamp()
@@ -39,41 +41,87 @@ model Category {
   @@unique([name, userId])
 }
 
+model Account {
+  id                String       @id @default(uuid()) @db.Uuid
+  name              String       @unique
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String       @db.Uuid
+  balance           Decimal      @default(0) @db.Decimal(10, 2)
+  createdAt         DateTime     @default(now()) @db.Timestamp()
+  updatedAt         DateTime     @updatedAt @db.Timestamp()
+  currency          String
+  color             String?
+  outgoingTransfers Transfer[]   @relation("Outgoings")
+  incomingTransfers Transfer[]   @relation("Incomings")
+  deposits          Deposit[]
+  withdrawals       Withdrawal[]
+}
+
+model Transfer {
+  id            String      @id @default(uuid()) @db.Uuid
+  createdAt     DateTime    @default(now()) @db.Timestamp()
+  updatedAt     DateTime    @updatedAt @db.Timestamp()
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionId String      @unique @db.Uuid
+  source        Account     @relation("Outgoings", fields: [sourceId], references: [id], onDelete: Cascade)
+  sourceId      String      @db.Uuid
+  destination   Account     @relation("Incomings", fields: [destinationId], references: [id], onDelete: Cascade)
+  destinationId String      @db.Uuid
+}
+
+model Deposit {
+  id            String      @id @default(uuid()) @db.Uuid
+  createdAt     DateTime    @default(now()) @db.Timestamp()
+  updatedAt     DateTime    @default(now()) @db.Timestamp()
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionId String      @unique @db.Uuid
+  account       Account     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId     String      @db.Uuid
+}
+
+model Withdrawal {
+  id            String      @id @default(uuid()) @db.Uuid
+  createdAt     DateTime    @default(now()) @db.Timestamp()
+  updatedAt     DateTime    @updatedAt @db.Timestamp()
+  account       Account     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId     String      @db.Uuid
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionId String      @unique @db.Uuid
+}
+
 model Transaction {
-  id         String                @id @default(uuid())
-  createdAt  DateTime              @default(now()) @db.Timestamp()
-  updatedAt  DateTime              @updatedAt @db.Timestamp()
-  amount     Decimal               @db.Decimal(10, 2)
-  date       DateTime              @db.Timestamp()
-  note       String?
-  type       ETransactionType
-  direction  ETransactionDirection
-  category   Category?             @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  categoryId String?
-  user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
-  budget     Budget                @relation(fields: [budgetId], references: [id])
-  budgetId   String
+  id          String       @id @default(uuid()) @db.Uuid
+  createdAt   DateTime     @default(now()) @db.Timestamp()
+  updatedAt   DateTime     @updatedAt @db.Timestamp()
+  amount      Decimal      @db.Decimal(10, 2)
+  date        DateTime     @db.Timestamp()
+  note        String?
+  paymentType EPaymentType
+  category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId  String?      @db.Uuid
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String       @db.Uuid
+  currency    String
+  transfer    Transfer?
+  deposit     Deposit?
+  withdrawal  Withdrawal?
+  // budget     Budget                @relation(fields: [budgetId], references: [id])
+  // budgetId   String
 }
 
-model Budget {
-  id           String        @id @default(uuid())
-  createdAt    DateTime      @default(now()) @db.Timestamp()
-  updatedAt    DateTime      @default(now()) @db.Timestamp()
-  startDate    DateTime      @db.Timestamp()
-  endDate      DateTime      @db.Timestamp()
-  balance      Decimal       @default(0) @db.Decimal(10, 2)
-  transactions Transaction[]
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       String
-}
+// model Budget {
+//   id           String        @id @default(uuid())
+//   createdAt    DateTime      @default(now()) @db.Timestamp()
+//   updatedAt    DateTime      @default(now()) @db.Timestamp()
+//   startDate    DateTime      @db.Timestamp()
+//   endDate      DateTime      @db.Timestamp()
+//   balance      Decimal       @default(0) @db.Decimal(10, 2)
+//   transactions TransactionTemplate[]
+//   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   userId       String
+// }
 
-enum ETransactionDirection {
-  INCOME
-  EXPENSE
-}
-
-enum ETransactionType {
+enum EPaymentType {
   CASH
   CARD
 }
