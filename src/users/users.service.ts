@@ -20,4 +20,11 @@ export class UsersService {
   public getUnsafeByEmail(email: string): Promise<User | null> {
     return this.prismaService.user.findUnique({ where: { email } });
   }
+
+  public getById(id: string): Promise<SafeUser | null> {
+    return this.prismaService.user.findUnique({
+      where: { id },
+      omit: { password: true },
+    });
+  }
 }

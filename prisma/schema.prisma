@@ -23,9 +23,26 @@ model User {
   password     String
   categories   Category[]
   transactions Transaction[]
-  // budgets      Budget[]
   accounts     Account[]
   baseCurrency String        @default("USD")
+  periods      Period[]
+}
+
+model Period {
+  id        String        @id @default(uuid()) @db.Uuid
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String        @db.Uuid
+  name      String
+  startDate DateTime      @db.Timestamp()
+  endDate   DateTime      @db.Timestamp()
+  status    EPeriodStatus @default(ACTIVE)
+  createdAt DateTime      @default(now()) @db.Timestamp()
+  updatedAt DateTime      @updatedAt @db.Timestamp()
+
+  transactions     Transaction[]
+  accountSnapshots AccountPeriodSnapshot[]
+
+  @@index([userId, status])
 }
 
 model Category {
@@ -42,19 +59,40 @@ model Category {
 }
 
 model Account {
-  id                String       @id @default(uuid()) @db.Uuid
-  name              String       @unique
-  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            String       @db.Uuid
-  balance           Decimal      @default(0) @db.Decimal(10, 2)
-  createdAt         DateTime     @default(now()) @db.Timestamp()
-  updatedAt         DateTime     @updatedAt @db.Timestamp()
+  id                String                  @id @default(uuid()) @db.Uuid
+  name              String
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String                  @db.Uuid
+  balance           Decimal                 @default(0) @db.Decimal(10, 2)
+  createdAt         DateTime                @default(now()) @db.Timestamp()
+  updatedAt         DateTime                @updatedAt @db.Timestamp()
   currency          String
   color             String?
-  outgoingTransfers Transfer[]   @relation("Outgoings")
-  incomingTransfers Transfer[]   @relation("Incomings")
+  type              EAccountType
+  outgoingTransfers Transfer[]              @relation("Outgoings")
+  incomingTransfers Transfer[]              @relation("Incomings")
   deposits          Deposit[]
   withdrawals       Withdrawal[]
+  snapshots         AccountPeriodSnapshot[]
+
+  @@unique([userId, name])
+}
+
+model AccountPeriodSnapshot {
+  id        String  @id @default(uuid()) @db.Uuid
+  period    Period  @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  periodId  String  @db.Uuid
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String  @db.Uuid
+
+  startingBalance Decimal @db.Decimal(30, 12)
+  endingBalance   Decimal @db.Decimal(30, 12)
+
+  createdAt DateTime @default(now()) @db.Timestamp()
+  updatedAt DateTime @default(now()) @db.Timestamp()
+
+  @@unique([periodId, accountId])
+  @@index([periodId])
 }
 
 model Transfer {
@@ -72,7 +110,7 @@ model Transfer {
 model Deposit {
   id            String      @id @default(uuid()) @db.Uuid
   createdAt     DateTime    @default(now()) @db.Timestamp()
-  updatedAt     DateTime    @default(now()) @db.Timestamp()
+  updatedAt     DateTime    @updatedAt @db.Timestamp()
   transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   transactionId String      @unique @db.Uuid
   account       Account     @relation(fields: [accountId], references: [id], onDelete: Cascade)
@@ -105,23 +143,24 @@ model Transaction {
   transfer    Transfer?
   deposit     Deposit?
   withdrawal  Withdrawal?
-  // budget     Budget                @relation(fields: [budgetId], references: [id])
-  // budgetId   String
+  period      Period?      @relation(fields: [periodId], references: [id], onDelete: SetNull)
+  periodId    String?      @db.Uuid
 }
-
-// model Budget {
-//   id           String        @id @default(uuid())
-//   createdAt    DateTime      @default(now()) @db.Timestamp()
-//   updatedAt    DateTime      @default(now()) @db.Timestamp()
-//   startDate    DateTime      @db.Timestamp()
-//   endDate      DateTime      @db.Timestamp()
-//   balance      Decimal       @default(0) @db.Decimal(10, 2)
-//   transactions TransactionTemplate[]
-//   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-//   userId       String
-// }
 
 enum EPaymentType {
   CASH
   CARD
+}
+
+enum EPeriodStatus {
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+enum EAccountType {
+  ASSET
+  LIABILITY
+  CREDIT
+  SAVINGS
 }
