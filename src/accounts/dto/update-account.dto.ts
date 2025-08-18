@@ -2,7 +2,6 @@ import { EAccountType } from '@prisma/client';
 import {
   IsEnum,
   IsHexColor,
-  IsISO4217CurrencyCode,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -21,8 +20,4 @@ export class UpdateAccountDto {
   @IsEnum(EAccountType)
   @IsOptional()
   type?: EAccountType;
-
-  @IsISO4217CurrencyCode()
-  @IsOptional()
-  currency?: string;
 }
