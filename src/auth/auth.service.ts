@@ -2,7 +2,6 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
-import { omit } from '@/shared/lib/omit';
 import { SafeUser } from '@/shared/model/user';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { UsersService } from '@/users/users.service';
@@ -15,23 +14,6 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
-
-  public async validateUser(
-    email: string,
-    password: string,
-  ): Promise<SafeUser | null> {
-    const user = await this.usersService.getUnsafeByEmail(email);
-
-    if (!user) return null;
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return null;
-    }
-
-    return omit(user, ['password']);
-  }
 
   private generateTokens({ email, id }: SafeUser) {
     const payload: JwtPayload = { email, sub: id };
