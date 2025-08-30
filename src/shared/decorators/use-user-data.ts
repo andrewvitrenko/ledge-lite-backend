@@ -1,7 +1,9 @@
 import { createParamDecorator } from '@nestjs/common';
 import { Request } from 'express';
 
-export const UseUserData = createParamDecorator((data: string, ctx) => {
+import { SafeUser } from '../model/user';
+
+export const UseUserData = createParamDecorator((data: keyof SafeUser, ctx) => {
   const request = ctx.switchToHttp().getRequest<Request>();
 
   return data ? request.user?.[data] : request.user;
