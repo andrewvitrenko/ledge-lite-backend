@@ -78,6 +78,16 @@ export class PeriodsController {
     return this.periodsService.updatePeriodEndDate(userId, periodId, dto);
   }
 
+  @Get('/')
+  @ApiOperation({ summary: 'Get all periods for the user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all periods for the user',
+  })
+  getAllPeriods(@UseUserData('id') userId: string) {
+    return this.periodsService.getAllPeriods(userId);
+  }
+
   @Get('/:periodId/overview')
   @ApiOperation({ summary: 'Get financial overview for a specific period' })
   @ApiResponse({

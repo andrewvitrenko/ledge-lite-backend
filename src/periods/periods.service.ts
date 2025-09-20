@@ -76,6 +76,17 @@ export class PeriodsService {
     });
   }
 
+  public async getAllPeriods(userId: string) {
+    return this.prismaService.period.findMany({
+      where: {
+        userId,
+      },
+      orderBy: {
+        startDate: 'desc',
+      },
+    });
+  }
+
   public async endPeriod(userId: string, periodId: string) {
     const period = await this.prismaService.period.findFirst({
       where: {
