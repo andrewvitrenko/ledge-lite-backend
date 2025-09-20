@@ -3,21 +3,23 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { EPeriodStatus } from '@prisma/client';
 
 import { AccountsService } from '../accounts/accounts.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePeriodDto } from './dto/create-period.dto';
+import { GetOverviewDto } from './dto/get-overview.dto';
 import { UpdatePeriodDto } from './dto/update-period.dto';
 
 @Injectable()
 export class PeriodsService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prismaService: PrismaService,
     private readonly accountsService: AccountsService,
   ) {}
 
-  async createPeriod(userId: string, dto: CreatePeriodDto) {
+  public async createPeriod(userId: string, dto: CreatePeriodDto) {
     const startDate = new Date(dto.startDate);
     const endDate = new Date(dto.endDate);
 
@@ -35,7 +37,7 @@ export class PeriodsService {
     const accounts = await this.accountsService.getAll(userId);
 
     // Start a transaction to create period and snapshots
-    return this.prisma.$transaction(async (tx) => {
+    return this.prismaService.$transaction(async (tx) => {
       // Create the period
       const period = await tx.period.create({
         data: {
@@ -65,8 +67,8 @@ export class PeriodsService {
     });
   }
 
-  async getActivePeriod(userId: string) {
-    return this.prisma.period.findFirst({
+  public async getActivePeriod(userId: string) {
+    return this.prismaService.period.findFirst({
       where: {
         userId,
         status: EPeriodStatus.ACTIVE,
@@ -74,8 +76,8 @@ export class PeriodsService {
     });
   }
 
-  async endPeriod(userId: string, periodId: string) {
-    const period = await this.prisma.period.findFirst({
+  public async endPeriod(userId: string, periodId: string) {
+    const period = await this.prismaService.period.findFirst({
       where: {
         id: periodId,
         userId,
@@ -91,7 +93,7 @@ export class PeriodsService {
     const accounts = await this.accountsService.getAll(userId);
 
     // Update period and snapshots in a transaction
-    return this.prisma.$transaction(async (tx) => {
+    return this.prismaService.$transaction(async (tx) => {
       // Update period status
       const updatedPeriod = await tx.period.update({
         where: { id: periodId },
@@ -119,12 +121,12 @@ export class PeriodsService {
     });
   }
 
-  async updatePeriodEndDate(
+  public async updatePeriodEndDate(
     userId: string,
     periodId: string,
     dto: UpdatePeriodDto,
   ) {
-    const period = await this.prisma.period.findFirst({
+    const period = await this.prismaService.period.findFirst({
       where: {
         id: periodId,
         userId,
@@ -141,9 +143,71 @@ export class PeriodsService {
       throw new BadRequestException('End date must be after start date');
     }
 
-    return this.prisma.period.update({
+    return this.prismaService.period.update({
       where: { id: periodId },
       data: { endDate: newEndDate },
     });
+  }
+
+  /**
+   * Get financial overview for a specific period
+   * @param userId - The ID of the user
+   * @param periodId - The ID of the period
+   * @returns Overview statistics including total income, expenses, net worth and its change
+   */
+  public async getOverview(
+    userId: string,
+    periodId: string,
+  ): Promise<GetOverviewDto> {
+    // Get period details with account snapshots in a single query
+    const period = await this.prismaService.period.findFirst({
+      where: {
+        id: periodId,
+        userId,
+      },
+      include: {
+        accountSnapshots: true,
+        transactions: {
+          include: {
+            deposit: true,
+            withdrawal: true,
+          },
+        },
+      },
+    });
+
+    if (!period) {
+      throw new Error('Period not found');
+    }
+
+    // Calculate total income from deposits using Prisma.Decimal
+    const totalIncome = period.transactions
+      .filter((t) => t.deposit)
+      .reduce((sum, t) => sum.add(t.amount), new Prisma.Decimal(0));
+
+    // Calculate total expenses from withdrawals using Prisma.Decimal
+    const totalExpenses = period.transactions
+      .filter((t) => t.withdrawal)
+      .reduce((sum, t) => sum.add(t.amount), new Prisma.Decimal(0));
+
+    // Calculate net worth from account snapshots ending balances using Prisma.Decimal
+    const netWorth = period.accountSnapshots.reduce(
+      (sum, snapshot) => sum.add(snapshot.endingBalance),
+      new Prisma.Decimal(0),
+    );
+
+    // Calculate net worth change using start and end balances with Prisma.Decimal
+    const netWorthChange = period.accountSnapshots.reduce(
+      (sum, snapshot) =>
+        sum.add(snapshot.endingBalance.sub(snapshot.startingBalance)),
+      new Prisma.Decimal(0),
+    );
+
+    return {
+      totalIncome: totalIncome.toNumber(),
+      totalExpenses: totalExpenses.toNumber(),
+      netWorth: netWorth.toNumber(),
+      netWorthChange: netWorthChange.toNumber(),
+    };
   }
 }
