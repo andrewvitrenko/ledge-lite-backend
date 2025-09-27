@@ -133,7 +133,8 @@ model Transaction {
   updatedAt   DateTime     @updatedAt @db.Timestamp()
   amount      Decimal      @db.Decimal(10, 2)
   date        DateTime     @db.Timestamp()
-  note        String?
+  name        String
+  description String?
   paymentType EPaymentType
   category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   categoryId  String?      @db.Uuid
