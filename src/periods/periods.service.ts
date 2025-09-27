@@ -3,12 +3,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Transaction } from '@prisma/client';
 import { EPeriodStatus } from '@prisma/client';
+
+import { IPaginatedResponse, IPagination } from '@/shared/model/pagination';
 
 import { AccountsService } from '../accounts/accounts.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePeriodDto } from './dto/create-period.dto';
+import { CategoryOverviewItemDto } from './dto/get-category-overview.dto';
 import { GetOverviewDto } from './dto/get-overview.dto';
 import { UpdatePeriodDto } from './dto/update-period.dto';
 
@@ -188,7 +191,7 @@ export class PeriodsService {
     });
 
     if (!period) {
-      throw new Error('Period not found');
+      throw new NotFoundException('Period not found');
     }
 
     // Calculate total income from deposits using Prisma.Decimal
@@ -219,6 +222,134 @@ export class PeriodsService {
       totalExpenses: totalExpenses.toNumber(),
       netWorth: netWorth.toNumber(),
       netWorthChange: netWorthChange.toNumber(),
+    };
+  }
+
+  public async getRecentTransactions(
+    userId: string,
+    periodId: string,
+    { page, take }: IPagination,
+  ): Promise<IPaginatedResponse<Transaction>> {
+    const skip = (page - 1) * take;
+
+    const data = await this.prismaService.transaction.findMany({
+      where: { periodId, userId },
+      include: {
+        category: true,
+        deposit: { include: { account: { select: { name: true } } } },
+        withdrawal: { include: { account: { select: { name: true } } } },
+      },
+      take,
+      skip,
+      orderBy: { date: 'desc' },
+    });
+
+    const count = await this.prismaService.transaction.count({
+      where: { periodId, userId },
+    });
+
+    return { data, total: count };
+  }
+
+  public async getCategoriesOverview(
+    userId: string,
+    periodId: string,
+    { page, take }: IPagination,
+  ): Promise<IPaginatedResponse<CategoryOverviewItemDto>> {
+    const skip = (page - 1) * take;
+
+    // First, find categories with transactions in this period
+    const categoriesWithTransactions =
+      await this.prismaService.transaction.findMany({
+        where: {
+          periodId,
+          userId,
+          withdrawal: { isNot: null },
+          categoryId: { not: null },
+        },
+        select: {
+          categoryId: true,
+          amount: true,
+        },
+        orderBy: {
+          categoryId: 'asc',
+        },
+        skip,
+        take,
+      });
+
+    if (categoriesWithTransactions.length === 0) {
+      return { data: [], total: 0 };
+    }
+
+    // Calculate total expenses
+    const totalExpenses = await this.prismaService.transaction.aggregate({
+      where: {
+        periodId,
+        userId,
+        withdrawal: { isNot: null },
+      },
+      _sum: { amount: true },
+    });
+
+    const totalExpensesAmount = totalExpenses._sum.amount?.toNumber() || 0;
+
+    // Get category details
+    const categories = await this.prismaService.category.findMany({
+      where: {
+        id: {
+          in: categoriesWithTransactions
+            .map((t) => t.categoryId)
+            .filter((id): id is string => id !== null),
+        },
+      },
+    });
+
+    // Aggregate transactions by category
+    const categoryAmounts: Record<string, number> =
+      categoriesWithTransactions.reduce((acc, transaction) => {
+        if (!transaction.categoryId) return acc;
+
+        const amount = transaction.amount.toNumber();
+        acc[transaction.categoryId] =
+          (acc[transaction.categoryId] || 0) + amount;
+        return acc;
+      }, {});
+
+    // Calculate total number of categories with transactions
+    const total = await this.prismaService.transaction.groupBy({
+      by: ['categoryId'],
+      where: {
+        periodId,
+        userId,
+        withdrawal: { isNot: null },
+        categoryId: { not: null },
+      },
+      _count: true,
+    });
+
+    // Format the data according to the DTO
+    const data = Object.entries(categoryAmounts).map(
+      ([categoryId, totalAmount]) => {
+        const category = categories.find((c) => c.id === categoryId);
+        const percentageOfTotal =
+          totalExpensesAmount === 0
+            ? 0
+            : (totalAmount / totalExpensesAmount) * 100;
+
+        return {
+          categoryId,
+          categoryName: category?.name || 'Unknown',
+          totalAmount,
+          percentageOfTotal,
+          color: category?.color || '#000000',
+        };
+      },
+    );
+
+    return {
+      data,
+      total: total.length,
     };
   }
 }

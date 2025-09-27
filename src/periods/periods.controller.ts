@@ -1,11 +1,14 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -14,7 +17,9 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { UseUserData } from '@/shared/decorators/use-user-data';
 
 import { CreatePeriodDto } from './dto/create-period.dto';
+import { GetCategoryOverviewResponseDto } from './dto/get-category-overview.dto';
 import { GetOverviewDto } from './dto/get-overview.dto';
+import { GetRecentTransactionsDto } from './dto/get-recent-transations.dto';
 import { UpdatePeriodDto } from './dto/update-period.dto';
 import { PeriodsService } from './periods.service';
 
@@ -100,5 +105,43 @@ export class PeriodsController {
     @UseUserData('id') userId: string,
   ): Promise<GetOverviewDto> {
     return this.periodsService.getOverview(userId, periodId);
+  }
+
+  @Get('/:periodId/recent-transactions')
+  @ApiOperation({ summary: 'Get all transactions for a specific period' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all transactions for the specified period',
+    type: GetRecentTransactionsDto,
+  })
+  getTransactions(
+    @Param('periodId', ParseUUIDPipe) periodId: string,
+    @UseUserData('id') userId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('take', new DefaultValuePipe(10), ParseIntPipe) take: number,
+  ) {
+    return this.periodsService.getRecentTransactions(userId, periodId, {
+      page,
+      take,
+    });
+  }
+
+  @Get('/:periodId/categories-overview')
+  @ApiOperation({ summary: 'Get overview of spending by category' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns aggregated spending data by category',
+    type: GetCategoryOverviewResponseDto,
+  })
+  getCategoriesOverview(
+    @Param('periodId', ParseUUIDPipe) periodId: string,
+    @UseUserData('id') userId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('take', new DefaultValuePipe(10), ParseIntPipe) take: number,
+  ) {
+    return this.periodsService.getCategoriesOverview(userId, periodId, {
+      page,
+      take,
+    });
   }
 }
