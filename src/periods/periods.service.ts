@@ -298,9 +298,7 @@ export class PeriodsService {
     const categories = await this.prismaService.category.findMany({
       where: {
         id: {
-          in: categoriesWithTransactions
-            .map((t) => t.categoryId)
-            .filter((id): id is string => id !== null),
+          in: categoriesWithTransactions.map((t) => t.categoryId!),
         },
       },
     });
@@ -308,11 +306,9 @@ export class PeriodsService {
     // Aggregate transactions by category
     const categoryAmounts: Record<string, number> =
       categoriesWithTransactions.reduce((acc, transaction) => {
-        if (!transaction.categoryId) return acc;
-
         const amount = transaction.amount.toNumber();
-        acc[transaction.categoryId] =
-          (acc[transaction.categoryId] || 0) + amount;
+        acc[transaction.categoryId!] =
+          (acc[transaction.categoryId!] || 0) + amount;
         return acc;
       }, {});
 

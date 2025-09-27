@@ -19,7 +19,7 @@ import { UseUserData } from '@/shared/decorators/use-user-data';
 import { CreatePeriodDto } from './dto/create-period.dto';
 import { GetCategoryOverviewResponseDto } from './dto/get-category-overview.dto';
 import { GetOverviewDto } from './dto/get-overview.dto';
-import { GetRecentTransactionsDto } from './dto/get-recent-transations.dto';
+import { GetRecentTransactionsDto } from './dto/get-recent-transactions.dto';
 import { UpdatePeriodDto } from './dto/update-period.dto';
 import { PeriodsService } from './periods.service';
 
