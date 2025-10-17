@@ -6,7 +6,7 @@ import {
 import { Prisma, Transaction } from '@prisma/client';
 import { EPeriodStatus } from '@prisma/client';
 
-import { IPaginatedResponse, IPagination } from '@/shared/model/pagination';
+import { IPaginatedResponse, IPagination } from '@/shared/model/utils';
 
 import { AccountsService } from '../accounts/accounts.service';
 import { PrismaService } from '../prisma/prisma.service';
