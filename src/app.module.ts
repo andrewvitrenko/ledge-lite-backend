@@ -4,6 +4,7 @@ import { AccountsModule } from './accounts/accounts.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { CategoriesModule } from './categories/categories.module';
 import { CurrencyModule } from './currency/currency.module';
 import { PeriodsModule } from './periods/periods.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -17,6 +18,7 @@ import { UsersModule } from './users/users.module';
     CurrencyModule,
     AccountsModule,
     PeriodsModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
