@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 
 import { AccountsModule } from './accounts/accounts.module';
 import { AppController } from './app.controller';
@@ -8,6 +9,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { CurrencyModule } from './currency/currency.module';
 import { PeriodsModule } from './periods/periods.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { IEnvVariables } from './shared/model/env';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -19,6 +21,7 @@ import { UsersModule } from './users/users.module';
     AccountsModule,
     PeriodsModule,
     CategoriesModule,
+    ConfigModule.forRoot<IEnvVariables>({ isGlobal: true }),
   ],
   controllers: [AppController],
   providers: [AppService],

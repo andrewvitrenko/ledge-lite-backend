@@ -1,13 +1,13 @@
 import {
   BadRequestException,
-  CanActivate,
-  ExecutionContext,
+  type CanActivate,
+  type ExecutionContext,
   Injectable,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 
-import { SafeUser } from '@/shared/model/user';
+import type { SafeUser } from '@/shared/model/user';
 
 import { AccountsService } from '../accounts.service';
 

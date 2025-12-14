@@ -3,10 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Category } from '@prisma/client';
 
+import type { Category } from '@/generated/prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
-import {
+import type {
   IFilters,
   IPaginatedResponse,
   IPagination,

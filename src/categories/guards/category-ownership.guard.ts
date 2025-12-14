@@ -1,16 +1,16 @@
 import {
   BadRequestException,
-  CanActivate,
-  ExecutionContext,
+  type CanActivate,
+  type ExecutionContext,
   ForbiddenException,
   Injectable,
   NotFoundException,
   UseGuards,
 } from '@nestjs/common';
 import { isUUID } from 'class-validator';
-import { Request } from 'express';
+import type { Request } from 'express';
 
-import { SafeUser } from '@/shared/model/user';
+import type { SafeUser } from '@/shared/model/user';
 
 import { CategoriesService } from '../categories.service';
 

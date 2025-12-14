@@ -1,8 +1,8 @@
 import {
-  ArgumentMetadata,
+  type ArgumentMetadata,
   BadRequestException,
   Injectable,
-  PipeTransform,
+  type PipeTransform,
 } from '@nestjs/common';
 
 export interface PositiveNumberValidationOptions {
@@ -26,9 +26,10 @@ export interface PositiveNumberValidationOptions {
 }
 
 @Injectable()
-export class PositiveNumberValidationPipe
-  implements PipeTransform<any, number>
-{
+export class PositiveNumberValidationPipe implements PipeTransform<
+  any,
+  number
+> {
   constructor(private readonly options: PositiveNumberValidationOptions = {}) {}
 
   transform(value: any, _metadata: ArgumentMetadata): number {

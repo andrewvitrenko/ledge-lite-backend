@@ -1,4 +1,3 @@
-import { EAccountType } from '@prisma/client';
 import {
   IsEnum,
   IsHexColor,
@@ -7,6 +6,8 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+
+import { EAccountType } from '@/generated/prisma/client';
 
 export class CreateAccountDto {
   @IsString()

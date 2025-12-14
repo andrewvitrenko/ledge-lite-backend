@@ -3,10 +3,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, Transaction } from '@prisma/client';
-import { EPeriodStatus } from '@prisma/client';
 
-import { IPaginatedResponse, IPagination } from '@/shared/model/utils';
+import {
+  EPeriodStatus,
+  Prisma,
+  type Transaction,
+} from '@/generated/prisma/client';
+import type { IPaginatedResponse, IPagination } from '@/shared/model/utils';
 
 import { AccountsService } from '../accounts/accounts.service';
 import { PrismaService } from '../prisma/prisma.service';
