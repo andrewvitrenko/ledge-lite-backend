@@ -18,7 +18,7 @@ import { LocalStrategy } from './strategies/local.strategy';
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService<IEnvVariables>) => ({
         secret: configService.get('ACCESS_TOKEN_SECRET'),
-        signOptions: { expiresIn: '3h' },
+        signOptions: { expiresIn: '1d' },
       }),
       inject: [ConfigService<IEnvVariables>],
     }),

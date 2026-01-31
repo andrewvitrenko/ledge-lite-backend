@@ -26,24 +26,6 @@ model User {
   transactions Transaction[]
   accounts     Account[]
   baseCurrency String        @default("USD")
-  periods      Period[]
-}
-
-model Period {
-  id        String        @id @default(uuid()) @db.Uuid
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String        @db.Uuid
-  name      String
-  startDate DateTime      @db.Timestamp()
-  endDate   DateTime      @db.Timestamp()
-  status    EPeriodStatus @default(ACTIVE)
-  createdAt DateTime      @default(now()) @db.Timestamp()
-  updatedAt DateTime      @updatedAt @db.Timestamp()
-
-  transactions     Transaction[]
-  accountSnapshots AccountPeriodSnapshot[]
-
-  @@index([userId, status])
 }
 
 model Category {
@@ -74,26 +56,8 @@ model Account {
   incomingTransfers Transfer[]              @relation("Incomings")
   deposits          Deposit[]
   withdrawals       Withdrawal[]
-  snapshots         AccountPeriodSnapshot[]
 
   @@unique([userId, name])
-}
-
-model AccountPeriodSnapshot {
-  id        String  @id @default(uuid()) @db.Uuid
-  period    Period  @relation(fields: [periodId], references: [id], onDelete: Cascade)
-  periodId  String  @db.Uuid
-  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  accountId String  @db.Uuid
-
-  startingBalance Decimal @db.Decimal(30, 12)
-  endingBalance   Decimal @db.Decimal(30, 12)
-
-  createdAt DateTime @default(now()) @db.Timestamp()
-  updatedAt DateTime @default(now()) @db.Timestamp()
-
-  @@unique([periodId, accountId])
-  @@index([periodId])
 }
 
 model Transfer {
@@ -145,19 +109,11 @@ model Transaction {
   transfer    Transfer?
   deposit     Deposit?
   withdrawal  Withdrawal?
-  period      Period?      @relation(fields: [periodId], references: [id], onDelete: SetNull)
-  periodId    String?      @db.Uuid
 }
 
 enum EPaymentType {
   CASH
   CARD
-}
-
-enum EPeriodStatus {
-  ACTIVE
-  CLOSED
-  ARCHIVED
 }
 
 enum EAccountType {

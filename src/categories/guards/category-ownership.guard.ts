@@ -31,7 +31,9 @@ export class CategoryOwnershipGuard implements CanActivate {
     if (!category)
       throw new NotFoundException('No category with this id found');
 
-    if (category.userId !== user.id) throw new ForbiddenException();
+    if (category.userId !== user.id) {
+      throw new ForbiddenException('Category does not belong to the user');
+    }
 
     return true;
   }

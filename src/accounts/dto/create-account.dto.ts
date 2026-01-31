@@ -3,8 +3,10 @@ import {
   IsHexColor,
   IsISO4217CurrencyCode,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
+  Min,
 } from 'class-validator';
 
 import { EAccountType } from '@/generated/prisma/client';
@@ -23,4 +25,9 @@ export class CreateAccountDto {
 
   @IsEnum(EAccountType)
   type: EAccountType;
+
+  @IsOptional()
+  @Min(0)
+  @IsNumber()
+  balance?: number;
 }
