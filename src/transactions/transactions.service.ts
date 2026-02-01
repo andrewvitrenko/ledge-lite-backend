@@ -35,6 +35,7 @@ export class TransactionsService {
       const transaction = await ctx.transaction.create({
         data: {
           userId,
+          currency: account.currency,
           ...transactionData,
         },
       });
@@ -70,6 +71,7 @@ export class TransactionsService {
       const transaction = await ctx.transaction.create({
         data: {
           userId,
+          currency: account.currency,
           ...transactionData,
         },
       });

@@ -1,7 +1,6 @@
 import { Transform } from 'class-transformer';
 import {
   IsEnum,
-  IsISO4217CurrencyCode,
   IsISO8601,
   IsNotEmpty,
   IsNumber,
@@ -18,9 +17,6 @@ export class CreateTransactionDto {
   @IsPositive()
   @IsNumber()
   amount: number;
-
-  @IsISO4217CurrencyCode()
-  currency: string;
 
   @IsOptional()
   @IsUUID()
