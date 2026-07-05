@@ -11,9 +11,9 @@ The `PositiveNumberValidationPipe` is a flexible pipe that validates incoming va
 The pipe is already included in your NestJS project. Simply import it:
 
 ```typescript
-import { 
+import {
   PositiveNumberValidationPipe,
-  type PositiveNumberValidationOptions 
+  type PositiveNumberValidationOptions,
 } from '@/shared/pipes/positive-number';
 ```
 
@@ -30,9 +30,7 @@ import { PositiveNumberValidationPipe } from '@/shared/pipes/positive-number';
 @Controller('users')
 export class UsersController {
   @Get(':id')
-  async getUser(
-    @Param('id', new PositiveNumberValidationPipe()) id: number
-  ) {
+  async getUser(@Param('id', new PositiveNumberValidationPipe()) id: number) {
     return { userId: id };
   }
 }
@@ -53,10 +51,14 @@ import { PositiveNumberValidationPipe } from '@/shared/pipes/positive-number';
 export class ProductsController {
   @Get(':id')
   async getProduct(
-    @Param('id', new PositiveNumberValidationPipe({
-      allowZero: true,
-      allowDecimals: false
-    })) id: number
+    @Param(
+      'id',
+      new PositiveNumberValidationPipe({
+        allowZero: true,
+        allowDecimals: false,
+      }),
+    )
+    id: number,
   ) {
     return { productId: id };
   }
@@ -73,12 +75,12 @@ Controls whether zero is considered a valid value.
 
 ```typescript
 // Does not allow zero (default)
-new PositiveNumberValidationPipe()
+new PositiveNumberValidationPipe();
 // Valid: 1, 2, 3.5
 // Invalid: 0, -1, -0.5
 
 // Allows zero
-new PositiveNumberValidationPipe({ allowZero: true })
+new PositiveNumberValidationPipe({ allowZero: true });
 // Valid: 0, 1, 2, 3.5
 // Invalid: -1, -0.5
 ```
@@ -89,11 +91,11 @@ Controls whether decimal numbers are allowed.
 
 ```typescript
 // Allows decimals (default)
-new PositiveNumberValidationPipe({ allowDecimals: true })
+new PositiveNumberValidationPipe({ allowDecimals: true });
 // Valid: 1, 2.5, 3.14
 
 // Only whole numbers
-new PositiveNumberValidationPipe({ allowDecimals: false })
+new PositiveNumberValidationPipe({ allowDecimals: false });
 // Valid: 1, 2, 3
 // Invalid: 1.5, 2.7, 3.14
 ```
@@ -104,21 +106,22 @@ Provides a custom error message for all validation failures.
 
 ```typescript
 new PositiveNumberValidationPipe({
-  errorMessage: 'Value must be a positive number'
-})
+  errorMessage: 'Value must be a positive number',
+});
 // All validation errors will use this message instead of default ones
 
 // Example with multiple options
 new PositiveNumberValidationPipe({
   allowZero: true,
   allowDecimals: false,
-  errorMessage: 'Value must be a non-negative whole number'
-})
+  errorMessage: 'Value must be a non-negative whole number',
+});
 ```
 
 ## Common Use Cases
 
 ### User/Entity IDs
+
 ```typescript
 @Get('user/:id')
 async getUser(
@@ -129,6 +132,7 @@ async getUser(
 ```
 
 ### Pagination Parameters
+
 ```typescript
 @Get('items')
 async getItems(
@@ -144,6 +148,7 @@ async getItems(
 ```
 
 ### Financial Amounts (allowing zero for balance checks)
+
 ```typescript
 @Post('deposit')
 async deposit(
@@ -157,6 +162,7 @@ async deposit(
 ```
 
 ### Inventory Quantities (integers only)
+
 ```typescript
 @Post('inventory')
 async updateInventory(
@@ -194,12 +200,14 @@ The pipe is fully typed and will convert valid string inputs to numbers:
 ## Testing
 
 The pipe includes comprehensive tests covering:
+
 - Valid positive numbers (integers and decimals)
 - Invalid inputs (negative, zero, non-numeric, infinite)
 - Configuration options (allowZero, allowDecimals)
 - Error message validation
 
 Run tests with:
+
 ```bash
 npm test positive-number-validation.pipe.spec.ts
 ```
@@ -231,6 +239,7 @@ async getUser(
 ## Implementation Details
 
 The pipe follows NestJS best practices:
+
 - Implements the `PipeTransform<any, number>` interface
 - Uses the `@Injectable()` decorator for dependency injection
 - Throws `BadRequestException` for validation failures
@@ -240,6 +249,7 @@ The pipe follows NestJS best practices:
 ## Examples
 
 ### Basic ID Validation
+
 ```typescript
 // Validates positive integers for user IDs
 @Get(':id')
@@ -251,6 +261,7 @@ async getUser(
 ```
 
 ### Financial Transaction Amounts
+
 ```typescript
 // Allows zero for balance checks, decimals for currency amounts
 @Post('transaction')
@@ -265,6 +276,7 @@ async createTransaction(
 ```
 
 ### Pagination with Integers Only
+
 ```typescript
 // Ensures page and limit are positive integers with clear error messages
 @Get('list')

@@ -1,5 +1,4 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { Request } from 'express';
 
 import { UseUserData } from '@/shared/decorators/use-user-data';
 import { SafeUser } from '@/shared/model/user';

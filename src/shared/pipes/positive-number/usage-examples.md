@@ -13,9 +13,7 @@ import { PositiveNumberValidationPipe } from '@/shared/pipes/positive-number';
 @Controller('users')
 export class UsersController {
   @Get(':id')
-  async getUser(
-    @Param('id', new PositiveNumberValidationPipe()) id: number
-  ) {
+  async getUser(@Param('id', new PositiveNumberValidationPipe()) id: number) {
     // id is guaranteed to be a positive number
     return this.usersService.findById(id);
   }
@@ -33,10 +31,14 @@ export class ProductsController {
   // Allow zero for product IDs (useful for "all products" queries)
   @Get(':id')
   async getProduct(
-    @Param('id', new PositiveNumberValidationPipe({ 
-      allowZero: true,
-      errorMessage: 'Product ID must be a non-negative number'
-    })) id: number
+    @Param(
+      'id',
+      new PositiveNumberValidationPipe({
+        allowZero: true,
+        errorMessage: 'Product ID must be a non-negative number',
+      }),
+    )
+    id: number,
   ) {
     return this.productsService.findById(id);
   }
@@ -44,14 +46,22 @@ export class ProductsController {
   // Pagination with integer-only validation and custom error messages
   @Get()
   async getProducts(
-    @Query('page', new PositiveNumberValidationPipe({
-      allowDecimals: false,
-      errorMessage: 'Page must be a positive integer'
-    })) page: number,
-    @Query('limit', new PositiveNumberValidationPipe({
-      allowDecimals: false,
-      errorMessage: 'Limit must be a positive integer'
-    })) limit: number
+    @Query(
+      'page',
+      new PositiveNumberValidationPipe({
+        allowDecimals: false,
+        errorMessage: 'Page must be a positive integer',
+      }),
+    )
+    page: number,
+    @Query(
+      'limit',
+      new PositiveNumberValidationPipe({
+        allowDecimals: false,
+        errorMessage: 'Limit must be a positive integer',
+      }),
+    )
+    limit: number,
   ) {
     return this.productsService.findPaginated(page, limit);
   }
@@ -69,14 +79,22 @@ export class AccountsController {
   // Allow zero for deposit amounts (balance inquiry)
   @Post(':accountId/deposit')
   async deposit(
-    @Param('accountId', new PositiveNumberValidationPipe({
-      allowDecimals: false,
-      errorMessage: 'Account ID must be a positive integer'
-    })) accountId: number,
-    @Body('amount', new PositiveNumberValidationPipe({
-      allowZero: true,
-      errorMessage: 'Deposit amount must be a non-negative number'
-    })) amount: number
+    @Param(
+      'accountId',
+      new PositiveNumberValidationPipe({
+        allowDecimals: false,
+        errorMessage: 'Account ID must be a positive integer',
+      }),
+    )
+    accountId: number,
+    @Body(
+      'amount',
+      new PositiveNumberValidationPipe({
+        allowZero: true,
+        errorMessage: 'Deposit amount must be a non-negative number',
+      }),
+    )
+    amount: number,
   ) {
     if (amount === 0) {
       return this.accountsService.getBalance(accountId);
@@ -87,13 +105,21 @@ export class AccountsController {
   // Strict positive amounts for withdrawals
   @Post(':accountId/withdraw')
   async withdraw(
-    @Param('accountId', new PositiveNumberValidationPipe({
-      allowDecimals: false,
-      errorMessage: 'Account ID must be a positive integer'
-    })) accountId: number,
-    @Body('amount', new PositiveNumberValidationPipe({
-      errorMessage: 'Withdrawal amount must be a positive number'
-    })) amount: number
+    @Param(
+      'accountId',
+      new PositiveNumberValidationPipe({
+        allowDecimals: false,
+        errorMessage: 'Account ID must be a positive integer',
+      }),
+    )
+    accountId: number,
+    @Body(
+      'amount',
+      new PositiveNumberValidationPipe({
+        errorMessage: 'Withdrawal amount must be a positive number',
+      }),
+    )
+    amount: number,
   ) {
     return this.accountsService.withdraw(accountId, amount);
   }
@@ -103,6 +129,7 @@ export class AccountsController {
 ## Integration with Your Existing Controllers
 
 ### Categories Controller
+
 ```typescript
 // In src/categories/categories.controller.ts
 import { PositiveNumberValidationPipe } from '@/shared/pipes/positive-number';
@@ -119,6 +146,7 @@ async findOne(
 ```
 
 ### Periods Controller
+
 ```typescript
 // In src/periods/periods.controller.ts
 import { PositiveNumberValidationPipe } from '@/shared/pipes/positive-number';
@@ -138,12 +166,13 @@ async getPeriod(
   if (month > 12) {
     throw new BadRequestException('Month must be between 1 and 12');
   }
-  
+
   return this.periodsService.findByYearMonth(year, month);
 }
 ```
 
 ### Accounts Controller
+
 ```typescript
 // In src/accounts/accounts.controller.ts
 import { PositiveNumberValidationPipe } from '@/shared/pipes/positive-number';
@@ -179,19 +208,31 @@ export class TransactionsController {
   // Different error messages for different fields
   @Post()
   async create(
-    @Body('fromAccountId', new PositiveNumberValidationPipe({
-      allowDecimals: false,
-      errorMessage: 'Source account ID must be a positive integer'
-    })) fromAccountId: number,
-    
-    @Body('toAccountId', new PositiveNumberValidationPipe({
-      allowDecimals: false,
-      errorMessage: 'Destination account ID must be a positive integer'
-    })) toAccountId: number,
-    
-    @Body('amount', new PositiveNumberValidationPipe({
-      errorMessage: 'Transaction amount must be a positive number'
-    })) amount: number
+    @Body(
+      'fromAccountId',
+      new PositiveNumberValidationPipe({
+        allowDecimals: false,
+        errorMessage: 'Source account ID must be a positive integer',
+      }),
+    )
+    fromAccountId: number,
+
+    @Body(
+      'toAccountId',
+      new PositiveNumberValidationPipe({
+        allowDecimals: false,
+        errorMessage: 'Destination account ID must be a positive integer',
+      }),
+    )
+    toAccountId: number,
+
+    @Body(
+      'amount',
+      new PositiveNumberValidationPipe({
+        errorMessage: 'Transaction amount must be a positive number',
+      }),
+    )
+    amount: number,
   ) {
     return this.transactionService.transfer(fromAccountId, toAccountId, amount);
   }
@@ -205,16 +246,24 @@ export class TransactionsController {
 export class InventoryController {
   @Post(':productId/stock')
   async updateStock(
-    @Param('productId', new PositiveNumberValidationPipe({
-      allowDecimals: false,
-      errorMessage: 'Product ID must be a positive integer'
-    })) productId: number,
-    
-    @Body('quantity', new PositiveNumberValidationPipe({
-      allowZero: true,
-      allowDecimals: false,
-      errorMessage: 'Quantity must be a non-negative whole number'
-    })) quantity: number
+    @Param(
+      'productId',
+      new PositiveNumberValidationPipe({
+        allowDecimals: false,
+        errorMessage: 'Product ID must be a positive integer',
+      }),
+    )
+    productId: number,
+
+    @Body(
+      'quantity',
+      new PositiveNumberValidationPipe({
+        allowZero: true,
+        allowDecimals: false,
+        errorMessage: 'Quantity must be a non-negative whole number',
+      }),
+    )
+    quantity: number,
   ) {
     return this.inventoryService.updateStock(productId, quantity);
   }
@@ -259,9 +308,9 @@ The pipe will automatically throw `BadRequestException` with your custom message
 import { ApiParam, ApiBody, ApiOperation } from '@nestjs/swagger';
 
 @ApiOperation({ summary: 'Get user by ID' })
-@ApiParam({ 
-  name: 'id', 
-  description: 'User ID (positive integer)', 
+@ApiParam({
+  name: 'id',
+  description: 'User ID (positive integer)',
   example: 123,
   type: 'integer'
 })
@@ -302,16 +351,16 @@ describe('UsersController', () => {
     const response = await request(app)
       .get('/users/123') // String in URL
       .expect(200);
-    
+
     // The controller receives 123 as a number, not "123" as a string
     expect(mockUsersService.findById).toHaveBeenCalledWith(123);
   });
-  
+
   it('should reject invalid IDs', async () => {
     await request(app)
       .get('/users/abc')
       .expect(400)
-      .expect(res => {
+      .expect((res) => {
         expect(res.body.message).toContain('not a valid number');
       });
   });
