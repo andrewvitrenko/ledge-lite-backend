@@ -4,11 +4,12 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: ledger-lite
+      POSTGRES_DB: postgres
     ports:
       - '5432:5432'
+    restart: always
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
 
 volumes:
-  pgdata:
+  db_data:
