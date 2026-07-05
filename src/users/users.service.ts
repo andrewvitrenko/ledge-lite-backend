@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
 
+import type { User } from '@/generated/prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
-import { SafeUser } from '@/shared/model/user';
+import type { SafeUser } from '@/shared/model/user';
 
 import { CreateUserDto } from './dto/create-user.dto';
 

@@ -1,4 +1,4 @@
-import { ArgumentMetadata, BadRequestException } from '@nestjs/common';
+import { type ArgumentMetadata, BadRequestException } from '@nestjs/common';
 
 import { PositiveNumberValidationPipe } from './positive-number-validation.pipe';
 

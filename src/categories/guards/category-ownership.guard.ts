@@ -1,16 +1,16 @@
 import {
   BadRequestException,
-  CanActivate,
-  ExecutionContext,
+  type CanActivate,
+  type ExecutionContext,
   ForbiddenException,
   Injectable,
   NotFoundException,
   UseGuards,
 } from '@nestjs/common';
 import { isUUID } from 'class-validator';
-import { Request } from 'express';
+import type { Request } from 'express';
 
-import { SafeUser } from '@/shared/model/user';
+import type { SafeUser } from '@/shared/model/user';
 
 import { CategoriesService } from '../categories.service';
 
@@ -31,7 +31,9 @@ export class CategoryOwnershipGuard implements CanActivate {
     if (!category)
       throw new NotFoundException('No category with this id found');
 
-    if (category.userId !== user.id) throw new ForbiddenException();
+    if (category.userId !== user.id) {
+      throw new ForbiddenException('Category does not belong to the user');
+    }
 
     return true;
   }

@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { format } from 'date-fns';
 
-import { GetExchangeRateResponse } from './interfaces/get-exchange-rate.interface';
+import type { GetExchangeRateResponse } from './interfaces/get-exchange-rate.interface';
 
 @Injectable()
 export class CurrencyService {
